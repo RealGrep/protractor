@@ -1,27 +1,18 @@
 {
   "NAME": "Protractor Continued",
-  "URL": "https://raw.githubusercontent.com/RealGrep/protractor/master/Protractor.version",
-  "DOWNLOAD" : "https://github.com/RealGrep/protractor/releases",
+    "URL":"https://themoose.co.uk/ksp/Protractor.version",
+    "DOWNLOAD":"https://themoose.co.uk/ksp/downloads.html",
+    "CHANGE_LOG_URL":"https://themoose.co.uk/ksp/ProtractorChanges.md",
   "VERSION": {
     "MAJOR": 2,
-    "MINOR": 5,
-    "PATCH": 1,
+    "MINOR": 8,
+    "PATCH": 0,
     "BUILD": 0
   },
   "KSP_VERSION": {
     "MAJOR": 1,
-    "MINOR": 0,
-    "PATCH": 2
+    "MINOR": 1,
+    "PATCH": 3
   },
-  "KSP_VERSION_MIN": {
-    "MAJOR": 1,
-    "MINOR": 0,
-    "PATCH": 0
-  },
-  "KSP_VERSION_MAX": {
-    "MAJOR": 1,
-    "MINOR": 0,
-    "PATCH": -1
-  }
 }
 

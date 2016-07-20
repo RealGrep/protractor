@@ -4,6 +4,15 @@ using System.Linq;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using KSP;
+using KSP.UI;
+using KSP.UI.Util;
+using KSP.IO;
+using KSP.UI.Screens;
+using KSP.UI.Rendering;
+
+
+
 
 namespace Protractor {
 
@@ -519,6 +528,9 @@ namespace Protractor {
             return body.orbit.semiMajorAxis * (1 + body.orbit.eccentricity * body.orbit.eccentricity / 2);
         }
 
+
+
+		// Thrust to Mass Ratio, I guess
         public double tmr()
         {
             Vector3d forward = pdata.vessel.transform.up;
@@ -526,16 +538,20 @@ namespace Protractor {
             totalmass = thrustmax = thrustmin = 0;
             foreach (Part p in pdata.vessel.parts)
             {
-                if (p.physicalSignificance != Part.PhysicalSignificance.NONE)
+				if( p != null && p.physicalSignificance != Part.PhysicalSignificance.NONE )
                 {
                     totalmass += p.mass;
 
                     foreach (PartResource pr in p.Resources)
                     {
-                        totalmass += pr.amount * PartResourceLibrary.Instance.GetDefinition(pr.info.id).density;
+						if (pr != null )
+							totalmass += pr.amount * pr.info.density;
                     }
                 }
-                if ((p.State == PartStates.ACTIVE) || (Staging.CurrentStage > Staging.lastStage && p.inverseStage == Staging.lastStage))
+
+
+
+				if( ( p.State == PartStates.ACTIVE ) || ( StageManager.CurrentStage > StageManager.LastStage && p.inverseStage == StageManager.LastStage ) )
                 {
                     if (p.Modules.Contains("ModuleEngines"))
                     {
@@ -579,7 +595,6 @@ namespace Protractor {
             }
             pdata.maxthrustaccel = thrustmax / totalmass;
             pdata.minthrustaccel = thrustmin / totalmass;
-
             return thrustmax / totalmass;
         }
 

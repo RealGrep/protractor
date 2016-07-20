@@ -9,6 +9,9 @@ using System.Linq;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using KSP.UI.Screens;
+
+
 
 namespace Protractor {
 
@@ -190,6 +193,7 @@ namespace Protractor {
 
         void OnGUIAppLauncherReady()
         {
+			if( !this.appButton )
             {
                 this.appButton = ApplicationLauncher.Instance.AddModApplication(
                     delegate() {
@@ -297,9 +301,20 @@ namespace Protractor {
                 }
             }
 
-            RenderingManager.AddToPostDrawQueue(3, new Callback(drawGUI));
+
             //vessel.OnFlyByWire += new FlightInputCallback(fly);
         }
+
+
+		/// <summary>
+		/// Called by Unity to draw the GUI - can be called many times per frame.
+		/// </summary>
+		public void OnGUI () {
+			drawGUI( );
+		}
+
+
+
 
         private void CreateToolbarButton()
         {
@@ -358,34 +373,51 @@ namespace Protractor {
             */
         }
 
+
+
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight)
-            {
                 return;
-            }
-            if (FlightGlobals.fetch.activeVessel.situation != Vessel.Situations.PRELAUNCH)
-            {
-                totaldv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
-                if (trackdv)
-                {
-                    trackeddv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
-                }
-            }
 
-            // Only recalculate data at fixed intervals (very roughly speaking)
-            t_lastUpdate += Time.deltaTime;
-            if (t_lastUpdate > updateInterval)
-            {
-                t_lastUpdate = 0.0f;
-                // No need to update if not showing the GUI
-                if (isVisible)
-                {
-                    pcalcs.update(pdata.celestials);
-                }
-            }
 
+			Vessel vessel = FlightGlobals.fetch.activeVessel;
+			if( vessel == FlightGlobals.ActiveVessel )
+			{
+				if( vessel != pdata.vessel ) // vessel changed, nuke everything
+				{
+					Debug.Log( "PROTRACTOR: vessel changed, nuke everything" );
+					drawApproachToBody = null;
+					pdata.initialize( vessel );
+					lastknownmainbody = vessel.mainBody;
+					focusbody = null;
+				}
+
+				if( FlightGlobals.fetch.activeVessel.situation != Vessel.Situations.PRELAUNCH )
+				{
+
+					totaldv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
+					if (trackdv)
+					{
+						trackeddv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
+					}
+				}
+
+				// Only recalculate data at fixed intervals (very roughly speaking)
+				t_lastUpdate += Time.deltaTime;
+				if (t_lastUpdate > updateInterval)
+				{
+					t_lastUpdate = 0.0f;
+					// No need to update if not showing the GUI
+					if (isVisible)
+					{
+						pcalcs.update(pdata.celestials);
+					}
+				}
+			}
         }
+
+
 
         public void mainGUI(int windowID)
         {
