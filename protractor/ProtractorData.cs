@@ -9,7 +9,6 @@ namespace Protractor {
 
     public class ProtractorData
     {
-        public Vessel vessel = null;
         public List<CelestialBody>
             planets = null,
             moons = null,
@@ -18,21 +17,20 @@ namespace Protractor {
 
         public Dictionary<string, CelestialData> celestials = new Dictionary<string, CelestialData>();
 
-        public enum orbitbodytype { sun, planet, moon };
+        public enum orbitbodytype { ksc, sun, planet, moon };
 
 
         public double closestApproachTime;
         public double maxthrustaccel;
         public double minthrustaccel;
 
-        public ProtractorData(Vessel vessel)
+        public ProtractorData()
         {
-            initialize(vessel);
+            initialize();
         }
 
-        public void initialize(Vessel vessel)
+        public void initialize()
         {
-            this.vessel = vessel;
             Sun = Planetarium.fetch.Sun;
             getbodies();
             getplanets();
@@ -40,10 +38,25 @@ namespace Protractor {
             //Debug.Log("Protractor: ProtractorData initialized.");
             //print();
         }
+
         public void getmoons()  //gets a list of moons
         {
+            // Not in flight, assume Kerbin
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                // Find Kerbin
+                List<CelestialBody> all = new List<CelestialBody>(Sun.orbitingBodies);
+                foreach (CelestialBody body in all)
+                {
+                    if (body.name == "Kerbin")
+                    {
+                        moons = new List<CelestialBody>(body.orbitingBodies);
+                        break;
+                    }
+                }
+            }
             // In interstellar space
-            if (vessel.mainBody == Sun)
+            else if (FlightGlobals.ActiveVessel.mainBody == Sun)
             {
                 if (moons != null)
                 {
@@ -55,18 +68,18 @@ namespace Protractor {
                 }
             }
             // Orbiting a planet
-            else if (vessel.mainBody.referenceBody == Planetarium.fetch.Sun)
+            else if (FlightGlobals.ActiveVessel.mainBody.referenceBody == Planetarium.fetch.Sun)
             {
-                moons = new List<CelestialBody>(vessel.mainBody.orbitingBodies);
+                moons = new List<CelestialBody>(FlightGlobals.ActiveVessel.mainBody.orbitingBodies);
             }
             // Orbiting a moon, gets all moons in planetary system
             else
             {
                 moons = new List<CelestialBody>();
-                List<CelestialBody> allmoons = new List<CelestialBody>(vessel.mainBody.referenceBody.orbitingBodies);
+                List<CelestialBody> allmoons = new List<CelestialBody>(FlightGlobals.ActiveVessel.mainBody.referenceBody.orbitingBodies);
                 foreach (CelestialBody moon in allmoons)
                 {
-                    if (vessel.mainBody != moon)
+                    if (FlightGlobals.ActiveVessel.mainBody != moon)
                     {
                         moons.Add(moon);
                     }
@@ -84,15 +97,30 @@ namespace Protractor {
                 planets = new List<CelestialBody>();
             }
 
-            foreach (CelestialBody body in bodyList)
+            // Not in flight, assume we're on Kerbin and don't use vessel
+            if (!HighLogic.LoadedSceneIsFlight)
             {
-                if (body.referenceBody == Planetarium.fetch.Sun)
+                foreach (CelestialBody body in Sun.orbitingBodies)
                 {
-                    if (body == Sun || body == vessel.mainBody || body == vessel.mainBody.referenceBody)
+                    if (body.name != "Kerbin")
                     {
-                        continue;
+                        planets.Add(body);
                     }
-                    planets.Add(body);
+                }
+            }
+            // In flight, so use current vessel
+            else
+            {
+                foreach (CelestialBody body in bodyList)
+                {
+                    if (body.referenceBody == Planetarium.fetch.Sun)
+                    {
+                        if (body == Sun || body == FlightGlobals.ActiveVessel.mainBody || body == FlightGlobals.ActiveVessel.mainBody.referenceBody)
+                        {
+                            continue;
+                        }
+                        planets.Add(body);
+                    }
                 }
             }
         }
@@ -113,11 +141,15 @@ namespace Protractor {
 
         public orbitbodytype getorbitbodytype()
         {
-            if (vessel.mainBody == Sun)
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                return orbitbodytype.ksc;
+            }
+            else if (FlightGlobals.ActiveVessel.mainBody == Sun)
             {
                 return orbitbodytype.sun;
             }
-            else if (vessel.mainBody.referenceBody != Sun)
+            else if (FlightGlobals.ActiveVessel.mainBody.referenceBody != Sun)
             {
                 return orbitbodytype.moon;
             }

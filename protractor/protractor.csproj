@@ -45,17 +45,17 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\Games\KSP\KSP-Real\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="KSPUtil">
-      <HintPath>..\..\..\..\Games\KSP\KSP-Real\KSP_x64_Data\Managed\KSPUtil.dll</HintPath>
+      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\Games\KSP\KSP-Real\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\Games\KSP\KSP-Real\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

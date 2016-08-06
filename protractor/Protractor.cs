@@ -117,7 +117,7 @@ namespace Protractor {
             }
             loadsettings();
  
-            pdata = new ProtractorData(FlightGlobals.fetch.activeVessel);
+            pdata = new ProtractorData();
             pcalcs = new ProtractorCalcs(pdata);
 
             lastknownmainbody = FlightGlobals.fetch.activeVessel.mainBody;
@@ -193,7 +193,7 @@ namespace Protractor {
 
         void OnGUIAppLauncherReady()
         {
-			if( !this.appButton )
+            if( !this.appButton )
             {
                 this.appButton = ApplicationLauncher.Instance.AddModApplication(
                     delegate() {
@@ -300,21 +300,15 @@ namespace Protractor {
                     }
                 }
             }
-
-
             //vessel.OnFlyByWire += new FlightInputCallback(fly);
         }
 
-
-		/// <summary>
-		/// Called by Unity to draw the GUI - can be called many times per frame.
-		/// </summary>
-		public void OnGUI () {
-			drawGUI( );
-		}
-
-
-
+        /// <summary>
+        /// Called by Unity to draw the GUI - can be called many times per frame.
+        /// </summary>
+        public void OnGUI () {
+            drawGUI( );
+        }
 
         private void CreateToolbarButton()
         {
@@ -378,46 +372,46 @@ namespace Protractor {
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight)
+            {
                 return;
+            }
 
 
-			Vessel vessel = FlightGlobals.fetch.activeVessel;
-			if( vessel == FlightGlobals.ActiveVessel )
-			{
-				if( vessel != pdata.vessel ) // vessel changed, nuke everything
-				{
-					Debug.Log( "PROTRACTOR: vessel changed, nuke everything" );
-					drawApproachToBody = null;
-					pdata.initialize( vessel );
-					lastknownmainbody = vessel.mainBody;
-					focusbody = null;
-				}
+            Vessel vessel = FlightGlobals.fetch.activeVessel;
+            if( vessel == FlightGlobals.ActiveVessel )
+            {
+/*
+                if( vessel != vessel ) // vessel changed, nuke everything
+                {
+                    Debug.Log( "PROTRACTOR: vessel changed, nuke everything" );
+                    drawApproachToBody = null;
+                    pdata.initialize();
+                    lastknownmainbody = vessel.mainBody;
+                    focusbody = null;
+                }
+*/
+                if( vessel.situation != Vessel.Situations.PRELAUNCH )
+                {
+                    totaldv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
+                    if (trackdv)
+                    {
+                        trackeddv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
+                    }
+                }
 
-				if( FlightGlobals.fetch.activeVessel.situation != Vessel.Situations.PRELAUNCH )
-				{
-
-					totaldv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
-					if (trackdv)
-					{
-						trackeddv += TimeWarp.fixedDeltaTime * pcalcs.thrustAccel();
-					}
-				}
-
-				// Only recalculate data at fixed intervals (very roughly speaking)
-				t_lastUpdate += Time.deltaTime;
-				if (t_lastUpdate > updateInterval)
-				{
-					t_lastUpdate = 0.0f;
-					// No need to update if not showing the GUI
-					if (isVisible)
-					{
-						pcalcs.update(pdata.celestials);
-					}
-				}
-			}
+                // Only recalculate data at fixed intervals (very roughly speaking)
+                t_lastUpdate += Time.deltaTime;
+                if (t_lastUpdate > updateInterval)
+                {
+                    t_lastUpdate = 0.0f;
+                    // No need to update if not showing the GUI
+                    if (isVisible)
+                    {
+                        pcalcs.update(pdata.celestials);
+                    }
+                }
+            }
         }
-
-
 
         public void mainGUI(int windowID)
         {
@@ -425,7 +419,7 @@ namespace Protractor {
             if (vessel.mainBody != lastknownmainbody)
             {
                 drawApproachToBody = null;
-                pdata.initialize(vessel);
+                pdata.initialize();
                 lastknownmainbody = vessel.mainBody;
                 focusbody = null;
             } //resets bodies, lines and collapse
@@ -450,9 +444,29 @@ namespace Protractor {
 
             if (GUI.tooltip != "")
             {
-                int w = 7 * GUI.tooltip.Length;
+                // How many lines, and what's the longest line in the tooltip text?
+                int num_lines = 1;
+                int max_width = 0;
+                int line_width = 0;
+                for (int i = 0; i < GUI.tooltip.Length; ++i)
+                {
+                    if (GUI.tooltip[i] == '\n')
+                    {
+                        num_lines++;
+                        line_width = 0;
+                    }
+                    else
+                    {
+                        line_width++;
+                        if (line_width > max_width)
+                        {
+                            max_width = line_width;
+                        }
+                    }
+                }
+                int w = 10 * max_width;
                 float x = (Event.current.mousePosition.x < windowPos.width / 2) ? Event.current.mousePosition.x + 10 : Event.current.mousePosition.x - 10 - w;
-                GUI.Box(new Rect(x, Event.current.mousePosition.y, w, 30), GUI.tooltip, tooltipstyle); //resize
+                GUI.Box(new Rect(x, Event.current.mousePosition.y, w, 30*num_lines), GUI.tooltip, tooltipstyle); //resize
             }
             GUI.DragWindow();
         }
@@ -548,7 +562,8 @@ namespace Protractor {
                 "- Click on the icon in the bottom left to hide Protractor and its windows\n" +
                 "- Click on the number in \"Closest\" column to toggle the closest approach line on the map\n" +
                 "- Click on the name of a celestial body in the list to hide other bodies.\n" +
-                "  Click on the θ angle or time display to create a KAC alarm, if present.\n" +
+                "  Click on the θ angle or time display to create a KAC alarm, if present. Keep in mind\n" +
+                "    the time calculation assumes a circular orbit and may be off by varying degrees.\n" +
                 "- Click on θ in the column headers to toggle between displaying an angle and an \n" +
                 " approximate time until the next launch window.\n" +
                 "- Click on Ψ in the column headers to toggle between displaying and angle and an\n" +
@@ -625,6 +640,7 @@ namespace Protractor {
                 {
                     if (i == 5 && (!showadvanced || pdata.getorbitbodytype() != ProtractorData.orbitbodytype.moon))
                     {
+                        GUILayout.Label(new GUIContent("", ""), boldstyle);
                         continue;
                     }
                     GUILayout.BeginVertical(GUILayout.Width(colwidths[i]));
@@ -833,6 +849,9 @@ namespace Protractor {
                         if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon && showadvanced)
                         {
                             GUILayout.Label(String.Format("{0:0.00}°", planetdata.adv_ejection_angle), datastyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                        } else
+                        {
+                            GUILayout.Label(new GUIContent("", ""), datastyle);
                         }
                         break;
                     }

@@ -35,7 +35,7 @@ namespace Protractor {
 
         public void calcPlanetData(Dictionary<string, CelestialData> celestials)
         {
-            //foreach (KeyValuePair<string, CelestialData> pair in celestials)
+            Vessel vessel = FlightGlobals.ActiveVessel;
             foreach (CelestialBody body in pdata.planets)
             {
                 CelestialData bodydata = pdata.celestials[body.name];
@@ -46,7 +46,7 @@ namespace Protractor {
 
                 bodydata.name = body.name;
 
-                // Calculate theta
+                // Calculate theta (phase angle)
                 double data;
                 if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon) //get the data
                 {
@@ -61,17 +61,17 @@ namespace Protractor {
                 double delta_theta;
                 if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon)
                 {
-                    CelestialBody o = pdata.vessel.orbit.referenceBody.orbit.referenceBody;
+                    CelestialBody o = vessel.orbit.referenceBody.orbit.referenceBody;
                     delta_theta = (360 / o.orbit.period) - (360 / body.orbit.period);
                 }
                 else if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.planet)
                 {
-                    CelestialBody o = pdata.vessel.orbit.referenceBody;
+                    CelestialBody o = vessel.orbit.referenceBody;
                     delta_theta = (360 / o.orbit.period) - (360 / body.orbit.period);
                 }
                 else
                 {
-                    delta_theta = (360 / pdata.vessel.orbit.period) - (360 / body.orbit.period);
+                    delta_theta = (360 / vessel.orbit.period) - (360 / body.orbit.period);
                 }
 
                 if (delta_theta > 0)
@@ -95,16 +95,16 @@ namespace Protractor {
                     bodydata.psi_time_adjusted_str = "";
                     bodydata.psi_angle_adjusted = 0.0;
                 } else {
-                    bodydata.psi_angle = (CalculateDesiredEjectionAngle(pdata.vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
+                    bodydata.psi_angle = (CalculateDesiredEjectionAngle(vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
                     if (tmr() > 0)
                     {
-                        bodydata.psi_angle_adjusted = (AdjustEjectAngle(pdata.vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
+                        bodydata.psi_angle_adjusted = (AdjustEjectAngle(vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
                     } else
                     {
                         bodydata.psi_angle_adjusted = -1;
                     }
 
-                    bodydata.psi_time = bodydata.psi_angle / (360 / pdata.vessel.orbit.period);
+                    bodydata.psi_time = bodydata.psi_angle / (360 / vessel.orbit.period);
                     bodydata.psi_time_str = TimeToDHMS(bodydata.psi_time);
                     if (bodydata.psi_angle_adjusted == -1)
                     {
@@ -112,7 +112,7 @@ namespace Protractor {
                         bodydata.psi_time_adjusted_str = "0 TMR";
                     } else
                     {
-                        bodydata.psi_time_adjusted = bodydata.psi_angle_adjusted / (360 / pdata.vessel.orbit.period);
+                        bodydata.psi_time_adjusted = bodydata.psi_angle_adjusted / (360 / vessel.orbit.period);
                         bodydata.psi_time_adjusted_str = TimeToDHMS(bodydata.psi_time_adjusted);
                     }
                 }
@@ -128,11 +128,11 @@ namespace Protractor {
                     bodydata.deltaV = CalculateDeltaV(body);
 
                     double thrust = calcThrust();
-                    if (pdata.vessel.ctrlState.mainThrottle != 0)
+                    if (vessel.ctrlState.mainThrottle != 0)
                     {
-                        thrust *= pdata.vessel.ctrlState.mainThrottle;
+                        thrust *= vessel.ctrlState.mainThrottle;
                     }
-                    bodydata.deltaV_time = calcBurnTime(bodydata.deltaV, pdata.vessel.GetTotalMass(), thrust);
+                    bodydata.deltaV_time = calcBurnTime(bodydata.deltaV, vessel.GetTotalMass(), thrust);
                 }
 
                 // Calculate Closest Approach
@@ -142,7 +142,7 @@ namespace Protractor {
                 // Advanced
                 if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon)
                 {
-                    bodydata.adv_ejection_angle = (CalculateDesiredEjectionAngle(pdata.vessel.mainBody.orbit.referenceBody, body) + 180 - CurrentEjectAngle(pdata.vessel.mainBody) + 360) % 360;
+                    bodydata.adv_ejection_angle = (CalculateDesiredEjectionAngle(vessel.mainBody.orbit.referenceBody, body) + 180 - CurrentEjectAngle(vessel.mainBody) + 360) % 360;
                 } else {
                     bodydata.adv_ejection_angle = -1;
                 }
@@ -151,6 +151,7 @@ namespace Protractor {
 
         public void calcMoonData(Dictionary<string, CelestialData> celestials)
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             foreach (CelestialBody body in pdata.moons)
             {
                 CelestialData bodydata = celestials[body.name];
@@ -167,22 +168,22 @@ namespace Protractor {
                 bodydata.theta_angle = data;
 
                 double delta_theta;
-                if (pdata.vessel.Landed && pdata.getorbitbodytype() == ProtractorData.orbitbodytype.planet)  //ship is landed on a planet, use rotation of the planet
+                if (vessel.Landed && pdata.getorbitbodytype() == ProtractorData.orbitbodytype.planet)  //ship is landed on a planet, use rotation of the planet
                 {
                     //double ves_vel = vessel.horizontalSrfSpeed;
-                    double ves_vel = pdata.vessel.orbit.getOrbitalSpeedAtPos(pdata.vessel.CoM);
-                    double radius = pdata.vessel.altitude + pdata.vessel.mainBody.Radius;
+                    double ves_vel = vessel.orbit.getOrbitalSpeedAtPos(vessel.CoM);
+                    double radius = vessel.altitude + vessel.mainBody.Radius;
                     double circumference = Math.PI * 2 * radius;
                     double rot = circumference / ves_vel;
                     delta_theta = (360 / rot)-(360 / body.orbit.period);
                 }
                 else if (pdata.getorbitbodytype() == ProtractorData.orbitbodytype.planet)   //ship orbiting a planet, but is not landed
                 {
-                    delta_theta = (360 / pdata.vessel.orbit.period) - (360 / body.orbit.period);
+                    delta_theta = (360 / vessel.orbit.period) - (360 / body.orbit.period);
                 }
                 else     //ship orbiting a moon
                 {
-                    CelestialBody o = pdata.vessel.mainBody;
+                    CelestialBody o = vessel.mainBody;
                     delta_theta = (360 / o.orbit.period) - (360 / body.orbit.period);
                 }
 
@@ -211,16 +212,16 @@ namespace Protractor {
                 }
                 else //vessel orbiting moon
                 {
-                    bodydata.psi_angle = (CalculateDesiredEjectionAngle(pdata.vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
+                    bodydata.psi_angle = (CalculateDesiredEjectionAngle(vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
                     if (tmr() > 0)
                     {
-                        bodydata.psi_angle_adjusted = (AdjustEjectAngle(pdata.vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
+                        bodydata.psi_angle_adjusted = (AdjustEjectAngle(vessel.mainBody, body) - CurrentEjectAngle(null) + 360) % 360;
                     } else
                     {
                         bodydata.psi_angle_adjusted = -1;
                     }
 
-                    bodydata.psi_time = bodydata.psi_angle / (360 / pdata.vessel.orbit.period);
+                    bodydata.psi_time = bodydata.psi_angle / (360 / vessel.orbit.period);
                     bodydata.psi_time_str = TimeToDHMS(bodydata.psi_time);
                     if (bodydata.psi_angle_adjusted == -1)
                     {
@@ -228,7 +229,7 @@ namespace Protractor {
                         bodydata.psi_time_adjusted_str = "0 TMR";
                     } else
                     {
-                        bodydata.psi_time_adjusted = bodydata.psi_angle_adjusted / (360 / pdata.vessel.orbit.period);
+                        bodydata.psi_time_adjusted = bodydata.psi_angle_adjusted / (360 / vessel.orbit.period);
                         bodydata.psi_time_adjusted_str = TimeToDHMS(bodydata.psi_time_adjusted);
                     }
                 }
@@ -237,11 +238,11 @@ namespace Protractor {
                 bodydata.deltaV = CalculateDeltaV(body);
 
                 double thrust = calcThrust();
-                if (pdata.vessel.ctrlState.mainThrottle != 0)
+                if (vessel.ctrlState.mainThrottle != 0)
                 {
-                    thrust *= pdata.vessel.ctrlState.mainThrottle;
+                    thrust *= vessel.ctrlState.mainThrottle;
                 }
-                bodydata.deltaV_time = calcBurnTime(bodydata.deltaV, pdata.vessel.GetTotalMass(), thrust);
+                bodydata.deltaV_time = calcBurnTime(bodydata.deltaV, vessel.GetTotalMass(), thrust);
 
                 // Calculate Closest Approach
                 double distance = getclosestapproach(body);
@@ -274,7 +275,8 @@ namespace Protractor {
 
         public Orbit getclosestorbit(CelestialBody target)
         {
-            Orbit checkorbit = pdata.vessel.orbit;
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            Orbit checkorbit = vessel.orbit;
             int orbitcount = 0;
 
             // Search for target
@@ -289,7 +291,7 @@ namespace Protractor {
                 }
 
             }
-            checkorbit = pdata.vessel.orbit;
+            checkorbit = vessel.orbit;
             orbitcount = 0;
 
             // Search for target's referencebody
@@ -304,7 +306,7 @@ namespace Protractor {
                 }
             }
 
-            return pdata.vessel.orbit;
+            return vessel.orbit;
         }
 
         public double mindistance(CelestialBody target, double time, double dt, Orbit vesselorbit)
@@ -340,6 +342,7 @@ namespace Protractor {
         // Calculates phase angle between the current body and target body
         public double CurrentPhase(CelestialBody target)
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             Vector3d vecthis = new Vector3d();
             Vector3d vectarget = new Vector3d();
             vectarget = target.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
@@ -347,16 +350,16 @@ namespace Protractor {
             // Vessel orbits a moon, target is a planet (going down)
             if (target.referenceBody == pdata.Sun && pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon)
             {
-                vecthis = pdata.vessel.mainBody.referenceBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
+                vecthis = vessel.mainBody.referenceBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
             }
             //vessel and target orbit same body (going parallel)
-            else if (pdata.vessel.mainBody == target.referenceBody)
+            else if (vessel.mainBody == target.referenceBody)
             {
-                vecthis = pdata.vessel.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()); //going up
+                vecthis = vessel.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()); //going up
             }
             else
             {
-                vecthis = pdata.vessel.mainBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
+                vecthis = vessel.mainBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
             }
 
             double phase = Angle2d(vecthis, vectarget);
@@ -374,16 +377,17 @@ namespace Protractor {
         // Calculates angle between vessel's position and prograde of orbited body
         public double CurrentEjectAngle(CelestialBody check)
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             Vector3d vesselvec = new Vector3d();
             vesselvec = check == null ?
-                pdata.vessel.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()) :
+                vessel.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()) :
                 check.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime());
 
             Vector3d bodyvec = new Vector3d();
             bodyvec = pdata.getorbitbodytype() == ProtractorData.orbitbodytype.moon &&
                 check != null ?
-                bodyvec = pdata.vessel.mainBody.orbit.referenceBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()) :
-                pdata.vessel.mainBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()); //get planet's position relative to universe
+                bodyvec = vessel.mainBody.orbit.referenceBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()) :
+                vessel.mainBody.orbit.getRelativePositionAtUT(Planetarium.GetUniversalTime()); //get planet's position relative to universe
 
             double eject = Angle2d(vesselvec, Quaternion.AngleAxis(90, Vector3d.forward) * bodyvec);
 
@@ -398,10 +402,11 @@ namespace Protractor {
         // Calculates phase angle for rendezvous between two bodies orbiting same parent
         public double DesiredPhase(CelestialBody dest)
         {
-            CelestialBody orig = pdata.vessel.mainBody;
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            CelestialBody orig = vessel.mainBody;
             double o_alt =
-                (pdata.vessel.mainBody == dest.orbit.referenceBody) ?
-                (pdata.vessel.mainBody.GetAltitude(pdata.vessel.findWorldCenterOfMass())) + dest.referenceBody.Radius : //going "up" from sun -> planet or planet -> moon
+                (vessel.mainBody == dest.orbit.referenceBody) ?
+                (vessel.mainBody.GetAltitude(vessel.findWorldCenterOfMass())) + dest.referenceBody.Radius : //going "up" from sun -> planet or planet -> moon
                 calcmeanalt(orig);  //going lateral from moon -> moon or planet -> planet
             double d_alt = calcmeanalt(dest);
             double u = dest.referenceBody.gravParameter;
@@ -417,8 +422,9 @@ namespace Protractor {
         // For going from a moon to another planet exploiting oberth effect
         public double OberthDesiredPhase(CelestialBody dest)
         {
-            CelestialBody moon = pdata.vessel.mainBody;
-            CelestialBody planet = pdata.vessel.mainBody.referenceBody;
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            CelestialBody moon = vessel.mainBody;
+            CelestialBody planet = vessel.mainBody.referenceBody;
             double planetalt = calcmeanalt(planet);
             double destalt = calcmeanalt(dest);
             double moonalt = calcmeanalt(moon);
@@ -440,18 +446,20 @@ namespace Protractor {
         // Calculates ejection v to reach destination
         public double CalculateDeltaV(CelestialBody dest)
         {
-            if (pdata.vessel.mainBody == dest.orbit.referenceBody)
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            // If we're looking at the current planet's moon
+            if (vessel.mainBody == dest.orbit.referenceBody)
             {
                 double radius = dest.referenceBody.Radius;
                 double u = dest.referenceBody.gravParameter;
                 double d_alt = calcmeanalt(dest);
-                double alt = (pdata.vessel.mainBody.GetAltitude(pdata.vessel.findWorldCenterOfMass())) + radius;
+                double alt = (vessel.mainBody.GetAltitude(vessel.findWorldCenterOfMass())) + radius;
                 double v = Math.Sqrt(u / alt) * (Math.Sqrt((2 * d_alt) / (alt + d_alt)) - 1);
-                return Math.Abs((Math.Sqrt(u / alt) + v) - pdata.vessel.orbit.GetVel().magnitude);
+                return Math.Abs((Math.Sqrt(u / alt) + v) - vessel.orbit.GetVel().magnitude);
             }
             else
             {
-                CelestialBody orig = pdata.vessel.mainBody;
+                CelestialBody orig = vessel.mainBody;
                 double d_alt = calcmeanalt(dest);
                 double o_radius = orig.Radius;
                 double u = orig.referenceBody.gravParameter;
@@ -460,15 +468,16 @@ namespace Protractor {
                 double o_alt = calcmeanalt(orig);
                 double exitalt = o_alt + o_soi;
                 double v2 = Math.Sqrt(u / exitalt) * (Math.Sqrt((2 * d_alt) / (exitalt + d_alt)) - 1);
-                double r = o_radius + (pdata.vessel.mainBody.GetAltitude(pdata.vessel.findWorldCenterOfMass()));
+                double r = o_radius + (vessel.mainBody.GetAltitude(vessel.findWorldCenterOfMass()));
                 double v = Math.Sqrt((r * (o_soi * v2 * v2 - 2 * o_mu) + 2 * o_soi * o_mu) / (r * o_soi));
-                return Math.Abs(v - pdata.vessel.orbit.GetVel().magnitude);
+                return Math.Abs(v - vessel.orbit.GetVel().magnitude);
             }
         }
 
         // Calculates ejection angle to reach destination body from origin body
         public double CalculateDesiredEjectionAngle(CelestialBody orig, CelestialBody dest)
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             double o_alt = calcmeanalt(orig);
             double d_alt = calcmeanalt(dest);
             double o_soi = orig.sphereOfInfluence;
@@ -477,7 +486,7 @@ namespace Protractor {
             double u = orig.referenceBody.gravParameter;
             double exitalt = o_alt + o_soi;
             double v2 = Math.Sqrt(u / exitalt) * (Math.Sqrt((2 * d_alt) / (exitalt + d_alt)) - 1);
-            double r = o_radius + (pdata.vessel.mainBody.GetAltitude(pdata.vessel.findWorldCenterOfMass()));
+            double r = o_radius + (vessel.mainBody.GetAltitude(vessel.findWorldCenterOfMass()));
             double v = Math.Sqrt((r * (o_soi * v2 * v2 - 2 * o_mu) + 2 * o_soi * o_mu) / (r * o_soi));
             double eta = Math.Abs(v * v / 2 - o_mu / r);
             double h = r * v;
@@ -486,22 +495,23 @@ namespace Protractor {
 
             eject = o_alt > d_alt ? 180 - eject : 360 - eject;
 
-            return pdata.vessel.orbit.inclination > 90 && !(pdata.vessel.Landed) ? 360 - eject : eject;
+            return vessel.orbit.inclination > 90 && !(vessel.Landed) ? 360 - eject : eject;
         }
 
         // Calculates eject angle for moon -> planet in preparation for planet -> planet transfer
         public double MoonAngle()
         {
-            CelestialBody orig = pdata.vessel.mainBody;
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            CelestialBody orig = vessel.mainBody;
             double o_alt = calcmeanalt(orig);
-            double d_alt = (pdata.vessel.mainBody.orbit.referenceBody.Radius + pdata.vessel.mainBody.orbit.referenceBody.atmosphereDepth) * 1.05;
+            double d_alt = (vessel.mainBody.orbit.referenceBody.Radius + vessel.mainBody.orbit.referenceBody.atmosphereDepth) * 1.05;
             double o_soi = orig.sphereOfInfluence;
             double o_radius = orig.Radius;
             double o_mu = orig.gravParameter;
             double u = orig.referenceBody.gravParameter;
             double exitalt = o_alt + o_soi;
             double v2 = Math.Sqrt(u / exitalt) * (Math.Sqrt((2 * d_alt) / (exitalt + d_alt)) - 1);
-            double r = o_radius + (pdata.vessel.mainBody.GetAltitude(pdata.vessel.findWorldCenterOfMass()));
+            double r = o_radius + (vessel.mainBody.GetAltitude(vessel.findWorldCenterOfMass()));
             double v = Math.Sqrt((r * (o_soi * v2 * v2 - 2 * o_mu) + 2 * o_soi * o_mu) / (r * o_soi));
             double eta = Math.Abs(v * v / 2 - o_mu / r);
             double h = r * v;
@@ -510,15 +520,16 @@ namespace Protractor {
 
             eject = o_alt > d_alt ? 180 - eject : 360 - eject;
 
-            return pdata.vessel.orbit.inclination > 90 && !(pdata.vessel.Landed) ? 360 - eject : eject;
+            return vessel.orbit.inclination > 90 && !(vessel.Landed) ? 360 - eject : eject;
         }
 
         public double AdjustEjectAngle(CelestialBody orig, CelestialBody dest)
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             double ang = CalculateDesiredEjectionAngle(orig, dest);
             double adj = 0;
             double time = (0.2 / 0.3) * burnlength(CalculateDeltaV(dest));
-            adj = ang - (360 * (time / pdata.vessel.orbit.period));
+            adj = ang - (360 * (time / vessel.orbit.period));
             adj = adj < 0 ? adj += 360 : adj;
             return adj;
         }
@@ -530,28 +541,29 @@ namespace Protractor {
 
 
 
-		// Thrust to Mass Ratio, I guess
+        // Thrust to Mass Ratio
         public double tmr()
         {
-            Vector3d forward = pdata.vessel.transform.up;
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            Vector3d forward = vessel.transform.up;
             double totalmass, thrustmax, thrustmin;
             totalmass = thrustmax = thrustmin = 0;
-            foreach (Part p in pdata.vessel.parts)
+            foreach (Part p in vessel.parts)
             {
-				if( p != null && p.physicalSignificance != Part.PhysicalSignificance.NONE )
+                if (p != null && p.physicalSignificance != Part.PhysicalSignificance.NONE)
                 {
                     totalmass += p.mass;
 
                     foreach (PartResource pr in p.Resources)
                     {
-						if (pr != null )
-							totalmass += pr.amount * pr.info.density;
+                        if (pr != null)
+                        {
+                            totalmass += pr.amount * pr.info.density;
+                        }
                     }
                 }
 
-
-
-				if( ( p.State == PartStates.ACTIVE ) || ( StageManager.CurrentStage > StageManager.LastStage && p.inverseStage == StageManager.LastStage ) )
+                if ((p.State == PartStates.ACTIVE) || (StageManager.CurrentStage > StageManager.LastStage && p.inverseStage == StageManager.LastStage))
                 {
                     if (p.Modules.Contains("ModuleEngines"))
                     {
@@ -677,7 +689,7 @@ namespace Protractor {
         public double thrustAccel()
         {
             tmr();
-            double throttle = pdata.vessel.ctrlState.mainThrottle;
+            double throttle = FlightGlobals.ActiveVessel.ctrlState.mainThrottle;
             return (1.0 - throttle) * pdata.minthrustaccel + throttle * pdata.maxthrustaccel;
         }
 
@@ -697,7 +709,7 @@ namespace Protractor {
             try
             {
                 string[] postfixes = { "y ", "d ", ":", ":", "" };
-                long[] intervals = { DaysPerYear * HoursPerDay * 3600, HoursPerDay * 3600, 3600, 60, 1 };
+                long[] intervals = { DaysPerYear*HoursPerDay*60*60, HoursPerDay*60*60, 60*60, 60, 1 };
 
                 if (seconds < 0)
                 {
