@@ -10,6 +10,8 @@ using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using KSP.UI.Screens;
+using ToolbarControl_NS;
+using KAC = KACWrapper.KACWrapper;
 
 
 
@@ -141,7 +143,7 @@ namespace Protractor {
             bodycolorlist.Add("Dres", Utils.hextorgb("917552"));
             bodycolorlist.Add("Pol", Utils.hextorgb("929d6d"));
 
-            if (!KACWrapper.InitKACWrapper())
+            if (KAC.InitKACWrapper())
             {
                 Debug.Log("Protractor: KAC integration initialized.");
             }
@@ -269,7 +271,7 @@ namespace Protractor {
             }
 
             approach_obj.layer = 9;
-            cam = (PlanetariumCamera)GameObject.FindObjectOfType(typeof(PlanetariumCamera));
+            cam = GameObject.FindObjectOfType<PlanetariumCamera>();
 
             approach = approach_obj.AddComponent<LineRenderer>();
             approach.transform.parent = null;
@@ -281,7 +283,7 @@ namespace Protractor {
             approach.startWidth = 10;
             approach.endWidth = 10;  //was 15, 5
 
-            approach.material = ((MapView)GameObject.FindObjectOfType(typeof(MapView))).orbitLinesMaterial;
+            approach.material = GameObject.FindObjectOfType<MapView>().orbitLinesMaterial;
 
             if (ToolbarManager.ToolbarAvailable)
             {
@@ -689,16 +691,16 @@ namespace Protractor {
         public void AddAlarm(CelestialBody origin, CelestialBody destination, double margin, double ut)
         {
             // Add KAC alarm
-            if (KACWrapper.APIReady)
+            if (KAC.APIReady)
             {
-                String tmpID = KACWrapper.KAC.CreateAlarm(KACWrapper.KACAPI.AlarmTypeEnum.TransferModelled,
+                String tmpID = KAC.KAC.CreateAlarm(KAC.KACAPI.AlarmTypeEnum.TransferModelled,
                     String.Format("{0} -> {1}", origin.name, destination.name),
                     ut - margin);
 
-                KACWrapper.KACAPI.KACAlarm alarmNew = KACWrapper.KAC.Alarms.First(a => a.ID == tmpID);
+                KAC.KACAPI.KACAlarm alarmNew = KAC.KAC.Alarms.First(a => a.ID == tmpID);
                 alarmNew.Notes = "Alarm created by Protractor.";
                 alarmNew.AlarmMargin = margin;
-                alarmNew.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarp;
+                alarmNew.AlarmAction = KAC.KACAPI.AlarmActionEnum.KillWarp;
                 alarmNew.XferOriginBodyName = origin.name;
                 alarmNew.XferTargetBodyName = destination.name;
             }
@@ -1198,11 +1200,9 @@ namespace Protractor {
             cfg["isvisible"] = isVisible;
             cfg["showplanets"] = showplanets;
             cfg["showmoons"] = showmoons;
-            cfg["showadvanced"] = showadvanced;
             cfg["showdv"] = showdv;
             cfg["trackdv"] = trackdv;
             cfg["skinid"] = skinId;
-            cfg["updateinterval"] = updateInterval;
             updateIntervalString = updateInterval.ToString("F2");
             cfg["updateinterval"] = updateIntervalString;
             planetAlarmMargin_str = planetAlarmMargin.ToString("F2");

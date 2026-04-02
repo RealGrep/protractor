@@ -6,34 +6,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-/*
-The MIT License (MIT)
-
-Copyright (c) 2014, David Tregoning
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-
 // TODO: Change this namespace to something specific to your plugin here.
 //EG:
 // namespace MyPlugin_KACWrapper
-namespace Protractor
+namespace KACWrapper
 {
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -99,10 +75,11 @@ namespace Protractor
             LogFormatted("Attempting to Grab KAC Types...");
 
             //find the base type
-            KACType = AssemblyLoader.loadedAssemblies
-                .Select(a => a.assembly.GetExportedTypes())
-                .SelectMany(t => t)
-                .FirstOrDefault(t => t.FullName == "KerbalAlarmClock.KerbalAlarmClock");
+            AssemblyLoader.loadedAssemblies.TypeOperation(t =>
+            {
+                if (t.FullName == "KerbalAlarmClock.KerbalAlarmClock")
+                    KACType = t;
+            });
 
             if (KACType == null)
             {
@@ -409,8 +386,10 @@ namespace Protractor
                     AlarmTypeField = KACAlarmType.GetField("TypeOfAlarm");
                     AlarmTimeProperty = KACAlarmType.GetProperty("AlarmTimeUT");
                     AlarmMarginField = KACAlarmType.GetField("AlarmMarginSecs");
-                    AlarmActionField = KACAlarmType.GetField("AlarmAction");
                     RemainingField = KACAlarmType.GetField("Remaining");
+
+                    AlarmActionField = KACAlarmType.GetField("AlarmAction");
+                    ActionActionProperty = KACAlarmType.GetProperty("AlarmActionConvert");
 
                     XferOriginBodyNameField = KACAlarmType.GetField("XferOriginBodyName");
                     //LogFormatted("XFEROrigin:{0}", XferOriginBodyNameField == null);
@@ -521,11 +500,22 @@ namespace Protractor
                 /// <summary>
                 /// What should the Alarm Clock do when the alarm fires
                 /// </summary>
+                //public AlarmActionEnum AlarmAction
+                //{
+                //    get { return (AlarmActionEnum)AlarmActionField.GetValue(actualAlarm); }
+                //    set { AlarmActionField.SetValue(actualAlarm, (Int32)value); }
+                //}
+                /// <summary>
+                /// What should the Alarm Clock do when the alarm fires
+                /// </summary>
                 public AlarmActionEnum AlarmAction
                 {
-                    get { return (AlarmActionEnum)AlarmActionField.GetValue(actualAlarm); }
-                    set { AlarmActionField.SetValue(actualAlarm, (Int32)value); }
+                    get { return (AlarmActionEnum)ActionActionProperty.GetValue(actualAlarm); }
+                    set { ActionActionProperty.SetValue(actualAlarm, (Int32)value); }
                 }
+                private PropertyInfo ActionActionProperty;
+
+
 
                 private FieldInfo RemainingField;
                 /// <summary>
@@ -583,12 +573,16 @@ namespace Protractor
                 TransferModelled,
                 Distance,
                 Crew,
-                EarthTime
+                EarthTime,
+                Contract,
+                ContractAuto,
+                ScienceLab
             }
 
             public enum AlarmActionEnum
             {
-
+                [Description("Do Nothing-Delete When Past")]        DoNothingDeleteWhenPassed,
+                [Description("Do Nothing")]                         DoNothing,
                 [Description("Message Only-No Affect on warp")]     MessageOnly,
                 [Description("Kill Warp Only-No Message")]          KillWarpOnly,
                 [Description("Kill Warp and Message")]              KillWarp,
