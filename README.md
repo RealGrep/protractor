@@ -27,6 +27,24 @@ Protractor is an old and dare I say, beloved by some, transfer window planner fo
 
 [![Tutorial video by Hadlock](https://img.youtube.com/vi/byiCYbFBx20/0.jpg)](https://www.youtube.com/watch?v=byiCYbFBx20)
 
+#### Original KSP Forums Thread
+
+[Original KSP Forums Thread](https://forum.kerbalspaceprogram.com/topic/75115-10x-protractor-continued-rendezvous-plugin-v251-may-15th-2015/)
+
+### Installation
+
+#### CKAN Installation
+
+There will soon be a way to install it again from the CKAN KSP mod manager. Won't be long, stay tuned.
+
+#### Manual Installation
+
+Just download the .zip file from the [Github Releases](https://github.com/RealGrep/protractor/releases). Then unzip it into your KSP installation's GameData/ folder. It should create a directory called Protractor in GameData containing the plugin. That's it. Should work.
+
+If you find any problems, please file an [Issue](https://github.com/RealGrep/protractor/issues).
+
+### Credits/License
+
 *Protractor was originally written by mrenigma03, who passed maintenance onto me many years ago. And I thank him for his original work. We appreciate him.*
 
 *This version was then maintained by me, Michel Dusseault (with mrenigma03's blessing). Both contributions are **released under the [GPLv3](protractor/gpl.txt).***
