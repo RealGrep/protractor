@@ -29,7 +29,12 @@ namespace Protractor {
         private CelestialBody
             drawApproachToBody = null,
             focusbody = null,
-            lastknownmainbody;
+            lastknownmainbody,
+            pendingFocusbody = null,
+            pendingDrawApproachToBody = null;
+        private bool
+            pendingFocusbodySet = false,
+            pendingDrawApproachSet = false;
         protected Rect
             manualwindowPos,
             settingswindowPos,
@@ -99,6 +104,10 @@ namespace Protractor {
         public double moonAlarmMargin = moonAlarmMargin_def;
         public string moonAlarmMargin_str = "300.00";
 
+        // Prefer stock systems over third-party mods when both are available
+        public bool preferStockToolbar = false;
+        public bool preferStockAlarms = false;
+
         // Main GUI visibility
         public static bool isVisible = true;
 
@@ -107,6 +116,7 @@ namespace Protractor {
 
         // Button for AppLauncher
         public ApplicationLauncherButton appButton = null;
+        private bool appLauncherEventRegistered = false;
 
 
         // Initializes lists of bodies, planets, and parameters
@@ -194,7 +204,8 @@ namespace Protractor {
 
         void OnGUIAppLauncherReady()
         {
-            if( !this.appButton )
+            appLauncherEventRegistered = false;
+            if (!this.appButton)
             {
                 this.appButton = ApplicationLauncher.Instance.AddModApplication(
                     delegate() {
@@ -313,10 +324,23 @@ namespace Protractor {
             drawGUI( );
         }
 
+        private bool UseBlizzyToolbar => ToolbarManager.ToolbarAvailable && !preferStockToolbar;
+
         private void CreateToolbarButton()
         {
-            if (ToolbarManager.ToolbarAvailable)
+            if (UseBlizzyToolbar)
             {
+                // Tear down stock button if we're switching to Blizzy
+                if (appLauncherEventRegistered)
+                {
+                    GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+                    appLauncherEventRegistered = false;
+                }
+                if (appButton != null)
+                {
+                    ApplicationLauncher.Instance.RemoveModApplication(appButton);
+                    appButton = null;
+                }
                 if (button == null)
                 {
                     button = ToolbarManager.Instance.add("Protractor", "protractorButton");
@@ -327,20 +351,30 @@ namespace Protractor {
                         isVisible = !isVisible;
                     };
                 }
-            } else {
-                if (appButton == null)
+            }
+            else
+            {
+                // Tear down Blizzy button if we're switching to stock
+                if (button != null)
+                {
+                    button.Destroy();
+                    button = null;
+                }
+                if (appButton == null && !appLauncherEventRegistered)
                 {
                     if (ApplicationLauncher.Ready)
                     {
                         OnGUIAppLauncherReady();
-                    } else {
+                    }
+                    else
+                    {
                         GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+                        appLauncherEventRegistered = true;
                     }
                 }
             }
         }
 
-        // If using Blizzy78's Toolbar, the button *must* be destroyed OnDestroy
         public void OnDestroy()
         {
             savesettings();
@@ -349,10 +383,15 @@ namespace Protractor {
                 button.Destroy();
                 button = null;
             }
-            if (appButton != null && !ToolbarManager.ToolbarAvailable)
+            if (appLauncherEventRegistered)
             {
                 GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+                appLauncherEventRegistered = false;
+            }
+            if (appButton != null)
+            {
                 ApplicationLauncher.Instance.RemoveModApplication(appButton);
+                appButton = null;
             }
         }
 
@@ -418,9 +457,27 @@ namespace Protractor {
 
         public void mainGUI(int windowID)
         {
+            // Apply any state changes from the previous Repaint before Layout runs,
+            // so the control count is stable across Layout and Repaint events.
+            if (Event.current.type == EventType.Layout)
+            {
+                if (pendingFocusbodySet)
+                {
+                    focusbody = pendingFocusbody;
+                    pendingFocusbodySet = false;
+                }
+                if (pendingDrawApproachSet)
+                {
+                    drawApproachToBody = pendingDrawApproachToBody;
+                    pendingDrawApproachSet = false;
+                }
+            }
+
             Vessel vessel = FlightGlobals.fetch.activeVessel;
             if (vessel.mainBody != lastknownmainbody)
             {
+                pendingDrawApproachToBody = null;
+                pendingDrawApproachSet = true;
                 drawApproachToBody = null;
                 pdata.initialize();
                 lastknownmainbody = vessel.mainBody;
@@ -493,7 +550,7 @@ namespace Protractor {
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("KAC Alarm Margin (planets): ");
+            GUILayout.Label("Alarm Margin (planets): ");
             planetAlarmMargin_str = GUILayout.TextField(planetAlarmMargin_str, 10);
             try {
                 planetAlarmMargin = float.Parse(planetAlarmMargin_str);
@@ -508,7 +565,7 @@ namespace Protractor {
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("KAC Alarm Margin (moons): ");
+            GUILayout.Label("Alarm Margin (moons): ");
             moonAlarmMargin_str = GUILayout.TextField(moonAlarmMargin_str, 10);
             try {
                 moonAlarmMargin = float.Parse(moonAlarmMargin_str);
@@ -521,6 +578,16 @@ namespace Protractor {
             }
             GUILayout.Label("s");
             GUILayout.EndHorizontal();
+
+            if (ToolbarManager.ToolbarAvailable)
+            {
+                bool newPref = GUILayout.Toggle(preferStockToolbar, "Prefer stock toolbar over Blizzy's Toolbar");
+                if (newPref != preferStockToolbar)
+                {
+                    preferStockToolbar = newPref;
+                    CreateToolbarButton();
+                }
+            }
 
             GUILayout.Label("Current skin: " + (SkinType)skinId );
             if (GUI.skin == null || skinId != 1)
@@ -689,19 +756,42 @@ namespace Protractor {
         // ut: Time of event. Time of alarm will be ut - margin.
         public void AddAlarm(CelestialBody origin, CelestialBody destination, double margin, double ut)
         {
-            // Add KAC alarm
+            string title = String.Format("{0} -> {1}", origin.name, destination.name);
+
             if (KAC.APIReady)
             {
+                // Kerbal Alarm Clock
                 String tmpID = KAC.KAC.CreateAlarm(KAC.KACAPI.AlarmTypeEnum.TransferModelled,
-                    String.Format("{0} -> {1}", origin.name, destination.name),
-                    ut - margin);
-
+                    title, ut - margin);
                 KAC.KACAPI.KACAlarm alarmNew = KAC.KAC.Alarms.First(a => a.ID == tmpID);
                 alarmNew.Notes = "Alarm created by Protractor.";
                 alarmNew.AlarmMargin = margin;
                 alarmNew.AlarmAction = KAC.KACAPI.AlarmActionEnum.KillWarp;
                 alarmNew.XferOriginBodyName = origin.name;
                 alarmNew.XferTargetBodyName = destination.name;
+            }
+            else
+            {
+                // Stock alarm clock
+                AlarmClockScenario scenario = AlarmClockScenario.Instance
+                    ?? GameObject.FindObjectOfType<AlarmClockScenario>();
+
+                if (scenario != null)
+                {
+                    Vessel vessel = FlightGlobals.ActiveVessel;
+                    var alarm = new AlarmTypeRaw();
+                    alarm.title = title;
+                    alarm.ut = ut - margin;
+                    alarm.vesselId = vessel.persistentId;
+                    alarm.vesselName = vessel.vesselName;
+                    alarm.actions.warp = AlarmActions.WarpEnum.KillWarp;
+                    alarm.actions.message = AlarmActions.MessageEnum.Yes;
+                    AlarmClockScenario.AddAlarm(alarm);
+                }
+                else
+                {
+                    Debug.LogWarning("Protractor: Could not add stock alarm — AlarmClockScenario not found.");
+                }
             }
         }
 
@@ -728,14 +818,8 @@ namespace Protractor {
 
                         if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
-                            if (planet.Equals(focusbody))
-                            {
-                                focusbody = null;
-                            }
-                            else
-                            {
-                                focusbody = planet;
-                            }
+                            pendingFocusbody = planet.Equals(focusbody) ? null : planet;
+                            pendingFocusbodySet = true;
                         }
                         break;
                     //******printing phase angles******
@@ -838,14 +922,8 @@ namespace Protractor {
 
                         if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
-                            if (planet.Equals(drawApproachToBody))
-                            {
-                                drawApproachToBody = null;
-                            }
-                            else
-                            {
-                                drawApproachToBody = planet;
-                            }
+                            pendingDrawApproachToBody = planet.Equals(drawApproachToBody) ? null : planet;
+                            pendingDrawApproachSet = true;
                         }
                         break;
                     case 5:
@@ -889,14 +967,8 @@ namespace Protractor {
                              GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) &&
                              Input.GetMouseButtonDown(0))
                         {
-                            if (moon.Equals(focusbody))
-                            {
-                                focusbody = null;
-                            }
-                            else
-                            {
-                                focusbody = moon;
-                            }
+                            pendingFocusbody = moon.Equals(focusbody) ? null : moon;
+                            pendingFocusbodySet = true;
                         }
                         break;
                     //******phase angles******
@@ -992,14 +1064,8 @@ namespace Protractor {
 
                         if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
-                            if (moon.Equals(drawApproachToBody))
-                            {
-                                drawApproachToBody = null;
-                            }
-                            else
-                            {
-                                drawApproachToBody = moon;
-                            }
+                            pendingDrawApproachToBody = moon.Equals(drawApproachToBody) ? null : moon;
+                            pendingDrawApproachSet = true;
                         }
                         break;
                     }
@@ -1202,6 +1268,7 @@ namespace Protractor {
             cfg["showdv"] = showdv;
             cfg["trackdv"] = trackdv;
             cfg["skinid"] = skinId;
+            cfg["preferstocktoolbar"] = preferStockToolbar;
             updateIntervalString = updateInterval.ToString("F2");
             cfg["updateinterval"] = updateIntervalString;
             planetAlarmMargin_str = planetAlarmMargin.ToString("F2");
@@ -1233,6 +1300,7 @@ namespace Protractor {
             trackdv = cfg.GetValue<bool>("trackdv", true);
 
             skinId = cfg.GetValue<int>("skinid", (int)Protractor.SkinType.Default);
+            preferStockToolbar = cfg.GetValue<bool>("preferstocktoolbar", false);
 
             updateIntervalString = cfg.GetValue<string>("updateinterval", "0.20");
             try {
