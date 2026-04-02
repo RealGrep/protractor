@@ -1,0 +1,13 @@
+{
+    "dotnet.server.useRuntime": false,
+    "dotnetAcquisitionExtension.existingDotnetPath": [
+        {
+            "extensionId": "ms-dotnettools.csdevkit",
+            "path": "/usr/lib/dotnet/dotnet" 
+        }
+    ],
+    "dotnet.server.runtimePath": "/usr/share/dotnet",
+    "dotnet.autoSdkDownload": false,
+    "sqltools.useNodeRuntime": null
+}
+

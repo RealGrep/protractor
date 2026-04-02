@@ -274,10 +274,12 @@ namespace Protractor {
             approach = approach_obj.AddComponent<LineRenderer>();
             approach.transform.parent = null;
             approach.enabled = false;
-            approach.SetColors(Color.green, Color.green);
+            approach.startColor = Color.green;
+            approach.endColor = Color.green;
             approach.useWorldSpace = true;
-            approach.SetVertexCount(2);
-            approach.SetWidth(10, 10);  //was 15, 5
+            approach.positionCount = 2;
+            approach.startWidth = 10;
+            approach.endWidth = 10;  //was 15, 5
 
             approach.material = ((MapView)GameObject.FindObjectOfType(typeof(MapView))).orbitLinesMaterial;
 
@@ -648,7 +650,7 @@ namespace Protractor {
                         if (colheaders[i] == "θ")
                         {
                             GUILayout.Label(new GUIContent(colheaders[i], phase_angle_time), boldstyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                            if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                            if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                             {
                                 thetatotime = !thetatotime;
                             }
@@ -656,7 +658,7 @@ namespace Protractor {
                         else if (colheaders[i] == "Ψ")
                         {
                             GUILayout.Label(new GUIContent(colheaders[i], psi_time), boldstyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                            if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                            if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                             {
                                 psitotime = !psitotime;
                             }
@@ -664,7 +666,7 @@ namespace Protractor {
                         else if (colheaders[i] == "Δv")
                         {
                             GUILayout.Label(new GUIContent(colheaders[i], dv_time), boldstyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                            if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                            if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                             {
                                 dvtotime = !dvtotime;
                             }
@@ -723,7 +725,7 @@ namespace Protractor {
                     case 0:
                         GUILayout.Label(new GUIContent(planetdata.name, bodytip), datatitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
 
-                        if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                        if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
                             if (planet.Equals(focusbody))
                             {
@@ -751,7 +753,7 @@ namespace Protractor {
                         GUILayout.Label(datastring, datastyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                         GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 
-                        if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                        if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
                             // Add KAC alarm on click
                             AddAlarm(FlightGlobals.fetch.activeVessel.mainBody, planet, planetAlarmMargin, Planetarium.GetUniversalTime() + planetdata.theta_time);
@@ -833,7 +835,7 @@ namespace Protractor {
                             GUILayout.Label(new GUIContent(ProtractorCalcs.ToSI(distance) + "m", linetip), diststyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                         }
 
-                        if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                        if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
                             if (planet.Equals(drawApproachToBody))
                             {
@@ -882,7 +884,7 @@ namespace Protractor {
                     //******printing names******
                     case 0:
                         GUILayout.Label(new GUIContent(moondata.name, bodytip), datatitle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                        if ((Event.current.type == EventType.repaint) &&
+                        if ((Event.current.type == EventType.Repaint) &&
                              GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) &&
                              Input.GetMouseButtonDown(0))
                         {
@@ -912,7 +914,7 @@ namespace Protractor {
                         GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 
                         // Add KAC Alarm on click
-                        if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                        if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
                             AddAlarm(FlightGlobals.fetch.activeVessel.mainBody, moon, moonAlarmMargin, Planetarium.GetUniversalTime() + moondata.theta_time);
                         }
@@ -987,7 +989,7 @@ namespace Protractor {
                             GUILayout.Label(new GUIContent(ProtractorCalcs.ToSI(distance) + "m", linetip), diststyle, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                         }
 
-                        if ((Event.current.type == EventType.repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
+                        if ((Event.current.type == EventType.Repaint) && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition) && Input.GetMouseButtonDown(0))
                         {
                             if (moon.Equals(drawApproachToBody))
                             {
@@ -1154,7 +1156,8 @@ namespace Protractor {
                     approach.SetPosition(1, ScaledSpace.LocalToScaledSpace(drawApproachToBody.orbit.getPositionAtUT(pdata.closestApproachTime)));
 
                     float scale = (float)(0.004 * cam.Distance);
-                    approach.SetWidth(scale, scale);
+                    approach.startWidth = scale;
+                    approach.endWidth = scale;
                 }
                 else
                 {
@@ -1317,14 +1320,14 @@ namespace Protractor {
             bool done = false;
             switch (Event.current.GetTypeForControl(controlID))
             {
-            case EventType.mouseDown:
+            case EventType.MouseDown:
                 if (position.Contains(Event.current.mousePosition))
                 {
                     GUIUtility.hotControl = controlID;
                     showList = true;
                 }
                 break;
-            case EventType.mouseUp:
+            case EventType.MouseUp:
                 if (showList)
                 {
                     done = true;

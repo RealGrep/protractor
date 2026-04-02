@@ -34,7 +34,7 @@ namespace Protractor {
 
         public void print()
         {
-            Debug.Log("Protractor: CelestialData: Name: " + name);
+            KSPLog.print("Protractor: CelestialData: Name: " + name);
         }
     }
 }

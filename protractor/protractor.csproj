@@ -1,77 +1,71 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A64B1F13-F0B3-4EE6-BB2E-A06B42429485}</ProjectGuid>
+    <TargetFramework>net472</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>protractor</RootNamespace>
-    <AssemblyName>protractor</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="KACWrapper.cs" />
-    <Compile Include="CelestialData.cs" />
-    <Compile Include="ProtractorData.cs" />
-    <Compile Include="ProtractorCalcs.cs" />
-    <Compile Include="Protractor.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="ToolbarWrapper.cs">
+    <Compile Update="ToolbarWrapper.cs">
       <Link>ToolbarWrapper.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KSPUtil">
-      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <!-- The UI/Legacy GUI (GUI, GUISkin, GUIStyle, Rect, etc.) -->
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <!-- Animation (Animator) -->
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    
+    <!-- Physics (If your mod handles orbits or forces) -->
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <!-- Text Rendering Module -->
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <!-- Legacy Input (UnityEngine.Input) -->
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!--
-  <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "\home\michel\.local\share\Steam\SteamApps\common\Kerbal Space Program\GameData\Protractor\Plugins"
-copy "$(TargetPath)" "\home\michel\protractor\newest version\Plugins"</PostBuildEvent>
-  </PropertyGroup>
--->
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>

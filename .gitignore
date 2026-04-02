@@ -166,3 +166,5 @@ pip-log.txt
 Output/
 *.sln
 *.userprefs
+
+.fake
