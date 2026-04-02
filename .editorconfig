@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+# Default: inherit project analyzer settings
+
+# Third-party wrapper files - suppress all analyzer warnings
+[protractor/KACWrapper.cs]
+dotnet_analyzer_diagnostic.severity = none
+
+[protractor/ToolbarWrapper.cs]
+dotnet_analyzer_diagnostic.severity = none

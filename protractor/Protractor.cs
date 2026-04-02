@@ -11,8 +11,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using KSP.UI.Screens;
 using ToolbarControl_NS;
-using KAC = KACWrapper.KACWrapper;
-
+using KAC = Protractor_KACWrapper.KACWrapper;
 
 
 namespace Protractor {
