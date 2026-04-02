@@ -1,17 +1,19 @@
 {
-    "spec_version" : 1,
-    "identifier"   : "Protractor",
-    "$kref"        : "#/ckan/github/RealGrep/Protractor",
-    "name"         : "Protractor",
-    "abstract"     : "Hohmann transfers to planets and moons, no nodes required.",
-    "license"      : "GPL-3.0",
-    "$vref"        : "#/ckan/ksp-avc",
-    "install"      :
-    [
+    "spec_version": "v1.4",
+    "identifier": "Protractor",
+    "name": "Protractor Continued",
+    "abstract": "A tool for calculating interplanetary transfer angles and phase angles.",
+    "author": ["mrenigma03", "Michel Dusseault"]
+    "$kref": "#/ckan/github/RealGrep/Protractor",
+    "license": "GPL-3.0",
+    "ksp_version_min": "1.12.0",
+    "resources": {
+        "homepage": "https://github.com/RealGrep/protractor"
+    },
+    "install": [
         {
-            "find"       : "Protractor",
-            "install_to" : "GameData"
+            "find": "Protractor",
+            "install_to": "GameData"
         }
     ]
 }
-
