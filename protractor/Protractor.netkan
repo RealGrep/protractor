@@ -3,7 +3,7 @@
     "identifier": "Protractor",
     "name": "Protractor Continued",
     "abstract": "A tool for calculating interplanetary transfer angles and phase angles.",
-    "author": ["mrenigma03", "Michel Dusseault"]
+    "author": ["mrenigma03", "Michel Dusseault"],
     "$kref": "#/ckan/github/RealGrep/Protractor",
     "license": "GPL-3.0",
     "ksp_version_min": "1.12.0",
