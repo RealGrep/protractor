@@ -4,7 +4,17 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <KspDir Condition="'$(KspDir)' == ''">$(KSP_DIR)</KspDir>
+    <KspDir Condition="'$(KspDir)' == '' And Exists('$(HOME)/.local/share/Steam/steamapps/common/Kerbal Space Program/KSP_Data/Managed/Assembly-CSharp.dll')">$(HOME)/.local/share/Steam/steamapps/common/Kerbal Space Program</KspDir>
+    <KspDir Condition="'$(KspDir)' == '' And Exists('$(HOME)/.steam/steam/steamapps/common/Kerbal Space Program/KSP_Data/Managed/Assembly-CSharp.dll')">$(HOME)/.steam/steam/steamapps/common/Kerbal Space Program</KspDir>
+    <KspDir Condition="'$(KspDir)' == '' And Exists('/data/SteamLibrary/steamapps/common/Kerbal Space Program/KSP_Data/Managed/Assembly-CSharp.dll')">/data/SteamLibrary/steamapps/common/Kerbal Space Program</KspDir>
+    <KspDir Condition="'$(KspDir)' == '' And Exists('$(HOME)/Library/Application Support/Steam/steamapps/common/Kerbal Space Program/KSP_Data/Managed/Assembly-CSharp.dll')">$(HOME)/Library/Application Support/Steam/steamapps/common/Kerbal Space Program</KspDir>
+    <KspManagedDir>$(KspDir)/KSP_Data/Managed</KspManagedDir>
   </PropertyGroup>
+  <Target Name="ValidateKspAssemblies" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(KspDir)' == ''" Text="KSP assemblies were not found. Set KSP_DIR or pass /p:KspDir=&quot;/path/to/Kerbal Space Program&quot; before building." />
+    <Error Condition="'$(KspDir)' != '' And !Exists('$(KspManagedDir)/Assembly-CSharp.dll')" Text="KSP assemblies were not found in '$(KspManagedDir)'. Set KSP_DIR or pass /p:KspDir=&quot;/path/to/Kerbal Space Program&quot;." />
+  </Target>
   <ItemGroup>
     <Compile Update="ToolbarWrapper.cs">
       <Link>ToolbarWrapper.cs</Link>
@@ -12,52 +22,52 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(KspManagedDir)/Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="KSPUtil">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
+      <HintPath>$(KspManagedDir)/KSPUtil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <!-- The UI/Legacy GUI (GUI, GUISkin, GUIStyle, Rect, etc.) -->
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
 
     <!-- Animation (Animator) -->
     <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.AnimationModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     
     <!-- Physics (If your mod handles orbits or forces) -->
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.PhysicsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
 
     <!-- Text Rendering Module -->
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
 
     <!-- Legacy Input (UnityEngine.Input) -->
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>\data\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(KspManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
